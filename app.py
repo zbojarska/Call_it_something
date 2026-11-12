@@ -7,8 +7,10 @@ st.subheader("chuj")
 
 st.write("Rules here")
 
-# Set the number to be guessed
-number = random.randint(1,100)
+# create a new random number if we don't have one yet
+if "number" not in st.session_state:
+    st.session_state["number"] = random.randint(1,100)
+    st.info("New number generated!")
 
 with st.form("number_form"):
     guess = st.number_input(
@@ -23,11 +25,12 @@ with st.form("number_form"):
 if submitted:
     st.write(f"You submitted: {guess}")
     # Run your calculation or other action here.
-    if guess == number:
-        st.success("Yeah! You did it")
+    if guess == st.session_state["number"]:
+        st.success("Yeah! You did it!")
+        st.balloons()
     else:
-        st.error("Oh no. The number is wrong.")
-        st.info(f"Debug info: The number is {number}")
+        st.error("Nah-uh! Try again!")
+        st.info(f"Debug info: The number is {st.session_state['number']}")
 
 
 # Title
