@@ -43,14 +43,14 @@ if st.button("New Game"):
 
 if submitted:
     st.write(f"You submitted: {guess}")
+    # Add the guess to the guess history:
+    st.session_state["guess_history"].append(guess)
     # Run your calculation or other action here.
     if guess == st.session_state["number"]:
         st.success("Yeah! You did it!")
         st.balloons()
     else:
         st.error("Nah-uh! Try again!")
-        # Add the guess to the guess history:
-        st.session_state["guess_history"].append(guess)
         st.write(f"Guess history: {st.session_state['guess_history']}")
         st.info(f"Debug info: The number is {st.session_state['number']}")
 

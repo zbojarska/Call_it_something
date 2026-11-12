@@ -10,7 +10,7 @@ guess_data = {
     }
 
 st.scatter_chart(data=guess_data, x="guessing_attempt", y="guess", x_label="Guessing Attempt", y_label="Your Guess", color=None, size=None, width="stretch", height="content", use_container_width=None, alt=None)
-
+# CHANGE THE COLOR OF THE LAST GUESS
 
 # add the clues history
 # ...
