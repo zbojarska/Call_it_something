@@ -6,6 +6,12 @@ st.title("Guessing Game")
 st.subheader("chuj")
 
 st.write("Rules here")
+# also maybe markdown for that?
+# st.markdown("""
+#This is the text for page 1.
+## Use markdown in Streamlit.
+#Just use `markdown`syntax for longer texts.
+#""")
 
 # create a new random number if we don't have one yet
 if "number" not in st.session_state:
@@ -22,6 +28,16 @@ with st.form("number_form"):
     )
     submitted = st.form_submit_button("Submit")
 
+# create an empty list for guess history if we don't have one yet
+if "guess_history" not in st.session_state:
+    st.session_state["guess_history"] = []
+
+if st.button("New Game"):
+    st.session_state["number"] = random.randint(1,100)
+    st.session_state["guess_history"] = []
+    # also clear the clues history!!!
+    # ...
+
 if submitted:
     st.write(f"You submitted: {guess}")
     # Run your calculation or other action here.
@@ -30,7 +46,15 @@ if submitted:
         st.balloons()
     else:
         st.error("Nah-uh! Try again!")
+        # Add the guess to the guess history:
+        st.session_state["guess_history"].append(guess)
+        st.write(f"Guess history: {st.session_state['guess_history']}")
         st.info(f"Debug info: The number is {st.session_state['number']}")
+
+
+
+
+
 
 
 # Title
@@ -41,5 +65,5 @@ if submitted:
 # AI Chat (retain history)
 # Clues history window
 # numbers guessed window
-
+# stats page
 # let's let out the balloons if someone guesses right at the end
