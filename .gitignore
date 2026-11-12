@@ -166,4 +166,5 @@ cython_debug/
 .streamlit/secrets.toml
 secrets.toml
 
-
+#examples
+streamlit-examples/
