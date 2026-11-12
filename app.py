@@ -1,5 +1,6 @@
 import random
 import streamlit as st
+from ai_utils import AIWrapper
 
 st.title("Guessing Game")
 
@@ -13,20 +14,22 @@ st.write("Rules here")
 #Just use `markdown`syntax for longer texts.
 #""")
 
-# create a new random number if we don't have one yet
-if "number" not in st.session_state:
-    st.session_state["number"] = random.randint(1,100)
-    st.info("New number generated!")
+col1, col2 = st.columns([2, 1])
+with col1:
+    # create a new random number if we don't have one yet
+    if "number" not in st.session_state:
+        st.session_state["number"] = random.randint(1,100)
+        st.info("New number generated!")
 
-with st.form("number_form"):
-    guess = st.number_input(
-        "Enter a number",
-        min_value=0,
-        max_value=100,
-        value=10,
-        step=1,
-    )
-    submitted = st.form_submit_button("Submit")
+    with st.form("number_form"):
+        guess = st.number_input(
+            "Enter a number",
+            min_value=0,
+            max_value=100,
+            value=10,
+            step=1,
+        )
+        submitted = st.form_submit_button("Submit")
 
 # create an empty list for guess history if we don't have one yet
 if "guess_history" not in st.session_state:
@@ -52,10 +55,10 @@ if submitted:
         st.info(f"Debug info: The number is {st.session_state['number']}")
 
 
+wrapper = AIWrapper()
 
-
-
-
+with col2:
+    wrapper.main()
 
 # Title
 # rules
