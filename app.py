@@ -54,9 +54,13 @@ if submitted:
         st.write(f"Guess history: {st.session_state['guess_history']}")
         st.info(f"Debug info: The number is {st.session_state['number']}")
 
-wrapper = AIWrapper()
+
 
 with col2:
+    if "ai_wrapper" not in st.session_state:
+        st.session_state.ai_wrapper = AIWrapper()
+
+    wrapper = st.session_state.ai_wrapper
     wrapper.main(st.session_state["number"])
 
 # Title
