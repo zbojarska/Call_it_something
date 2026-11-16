@@ -1,3 +1,4 @@
+import openai
 import streamlit as st
 from charset_normalizer import api
 from openai import OpenAI, AuthenticationError, OpenAIError
@@ -26,38 +27,92 @@ INSTRUCTIONS = "Only accept questions that take the form of a scenario concernin
 class AIWrapper:
 
     def __init__(self):
-        self.api_key = None
         self.client = None
         self.instructions = INSTRUCTIONS
         self.base_url = "https://litellm.uni-osnabrueck.de/v1"
 
 
+    def initiate_client(self, api_key):
+        client = OpenAI(
+            base_url=self.base_url,
+            api_key=api_key
+        )
+
+        try:
+            client.models.list()
+        except Exception:
+            client.close()
+            raise
+
+        if self.client is not None:
+            self.client.close()
+
+        self.client = client
+
+    def connect(self, api_key):
+        try:
+            with st.spinner("Connecting..."):
+                self.initiate_client(api_key)
+        except openai.AuthenticationError:
+            st.error("Invalid API key")
+
+        except openai.PermissionDeniedError:
+            st.error("This key doesn't have access to the API.")
+
+        except openai.APIConnectionError:
+            st.error("Couldn't connect to the API server.")
+
+        except openai.APIStatusError as e:
+            st.error(f"API error: {e.status_code}")
+
+        else:
+            st.rerun()
+
     def request_api_key(self):
-        with st.sidebar:
+        @st.dialog("Gimme ur key🗝")
+        def api_key_dialog():
             api_key = st.text_input(
                 "UOS AI API-Key",
                 type="password",
                 key="uos_api_key",
-                placeholder="sk-...",
-            ).strip()
+                placeholder="sk-...",).strip()
 
-        print(api_key)
-        if not api_key:
-            st.warning(
-                "Please enter your Uni Osnabrück API key. If you don't have one, you can obtain it from https://ai-keys.uni-osnabrueck.de.")
-            st.stop()
-        self.api_key = api_key
-        return
+            if st.button("Submit"):
+                self.connect(api_key)
 
-    def initiate_client(self):
-        self.client = OpenAI(
-            base_url=self.base_url,
-            api_key=self.api_key
-        )
+        if self.client is None:
+            api_key_dialog()
+
+        with st.sidebar:
+            if (self.client is None):
+                st.write("🟥 API key not provided!")
+                button_text = "Connect"
+
+
+            else:
+                st.write("🟢API key provided!")
+                button_text = "Change API key"
+
+            api_key = st.text_input("Enter your API key",
+                                    key="uos_api_key",
+                                    type="password",
+                                    placeholder="sk-...", ).strip()
+
+            submitted = st.button(button_text)
+            if submitted:
+                self.initiate_client(api_key)
+                st.rerun()
+
+
+
+
 
     def main(self, number):
         self.request_api_key()
-        self.initiate_client()
+
+        if self.client is None:
+            return
+
 
         print("ST:", st)
         print("TYPE:", type(st))
@@ -66,24 +121,27 @@ class AIWrapper:
         prompt=st.chat_input("Hint?")
 
         if prompt:
-            with st.spinner("Answer is being created …"):
-                response = self.client.chat.completions.create(
-                    model="Ornith-1.5-35B-A3B",
-                    messages=[
-                        {"role": "system", "content": INSTRUCTIONS + str(number)},
-                        {"role": "user", "content": prompt},
-                    ]
-                )
-                answer = response.choices[0].message.content
+            try:
+                with st.spinner("Answer is being created …"):
+                    response = self.client.chat.completions.create(
+                        model="Ornith-1.5-35B-A3B",
+                        messages=[
+                            {"role": "system", "content": INSTRUCTIONS + str(number)},
+                            {"role": "user", "content": prompt},
+                        ]
+                    )
+                    answer = response.choices[0].message.content
 
-            with st.chat_message("assistant"):
-                st.write(answer)
+                with st.chat_message("assistant"):
+                    st.write(answer)
+
+            except AuthenticationError:
+                st.error("Auth error: Please check your API key")
+
+            except OpenAIError:
+                st.error(
+                    "AI API request failed. Please check it and try again. "
+                )
 
         return
-            # except AuthenticationError:
-            #     st.error("API was not accept. Please check it.")
-            #
-            # except OpenAIError:
-            #     st.error(
-            #         "AI API request failed. Please check it and try again. "
-            #     )
+
