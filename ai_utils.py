@@ -1,3 +1,5 @@
+import time
+
 import openai
 import streamlit as st
 from charset_normalizer import api
@@ -40,8 +42,10 @@ class AIWrapper:
 
         try:
             client.models.list()
-        except Exception:
+        except Exception as e:
             client.close()
+
+            print(f"DEBUG: exception caught correctly. Msg:{e}")
             raise
 
         if self.client is not None:
@@ -49,28 +53,34 @@ class AIWrapper:
 
         self.client = client
 
-    def connect(self, api_key):
+    def connect(self, api_key, sidebar=False):
         try:
             with st.spinner("Connecting..."):
                 self.initiate_client(api_key)
+
         except openai.AuthenticationError:
-            st.error("Invalid API key")
+            return "Invalid API key"
 
         except openai.PermissionDeniedError:
-            st.error("This key doesn't have access to the API.")
+            return "This key doesn't have access to the API"
 
         except openai.APIConnectionError:
-            st.error("Couldn't connect to the API server.")
+            return "Couldn't connect to the API server."
 
         except openai.APIStatusError as e:
-            st.error(f"API error: {e.status_code}")
+            return f"API error: {e.status_code}"
+
+        except Exception as e:
+            return str(e)
 
         else:
-            st.rerun()
+            return None
 
-    def request_api_key(self):
+    def request_api_key_dialog(self):
         @st.dialog("Gimme ur key🗝")
+
         def api_key_dialog():
+            st.write("If you don't have the key, go get it at https://keyosk.uni-osnabrueck.de/")
             api_key = st.text_input(
                 "UOS AI API-Key",
                 type="password",
@@ -78,41 +88,60 @@ class AIWrapper:
                 placeholder="sk-...",).strip()
 
             if st.button("Submit"):
-                self.connect(api_key)
+                self.connect(api_key, sidebar=False)
+                st.rerun()
 
         if self.client is None:
             api_key_dialog()
+        return
 
+
+
+    def request_api_key_sidebar(self):
         with st.sidebar:
+            st.write("If you don't have the key, go get it at https://keyosk.uni-osnabrueck.de/")
+            api_message = st.empty()
+
             if (self.client is None):
-                st.write("🟥 API key not provided!")
+                st.session_state["status"] = "Not connected!"
+                api_message.text("Please provide an API key")
+                st.badge(st.session_state["status"], color="red")
                 button_text = "Connect"
 
-
             else:
-                st.write("🟢API key provided!")
+                st.session_state["status"] = "Connected!"
+                api_message.text("Your API key seems to be alright")
+                st.badge(st.session_state["status"], color='green')
                 button_text = "Change API key"
 
             api_key = st.text_input("Enter your API key",
-                                    key="uos_api_key",
+                                    key="uos_api_key_sidebar",
                                     type="password",
                                     placeholder="sk-...", ).strip()
 
-            submitted = st.button(button_text)
-            if submitted:
-                self.initiate_client(api_key)
+            if st.button(button_text):
+
+                print("\n\nWe entered the button\n\n")
+                error = self.connect(api_key, sidebar=True)
+
+                if error:
+                    print("WE ARE HERE")
+                    api_message.error(f"{error} Using the old key instead.")
+                    time.sleep(3)
+
                 st.rerun()
 
 
 
-
-
     def main(self, number):
-        self.request_api_key()
+        if "dialog_opened" not in st.session_state or st.session_state["dialog_opened"] == False:
+            self.request_api_key_dialog()
+            st.session_state["dialog_opened"] = True
+
+        self.request_api_key_sidebar()
 
         if self.client is None:
             return
-
 
         print("ST:", st)
         print("TYPE:", type(st))

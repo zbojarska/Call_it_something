@@ -40,4 +40,4 @@ if "#008000" in st.session_state['colors']:
 
 
 if st.button("Go to the Game"):
-    st.switch_page("app.py")
+    st.switch_page("game.py")
