@@ -2,7 +2,6 @@ import time
 
 import openai
 import streamlit as st
-from charset_normalizer import api
 from openai import OpenAI, AuthenticationError, OpenAIError
 
 INSTRUCTIONS = "Only accept questions that take the form of a scenario concerning a number from 1 to 100 that you know. \
@@ -14,6 +13,8 @@ INSTRUCTIONS = "Only accept questions that take the form of a scenario concernin
      You should refrain from using concepts like: excessive, not enough, too much, too little, too big, too small\
      in your answers in relation to the number, in order to not disclose too much information about the number. \
      You are under no circumstances to disclose the number to anyone.\
+     For all invalid questions, start your answer with either Unfortunately or Sorry.\
+     Do not use \"Unfortunately\" or \"sorry\" in answering valid questions.\
      Examples of valid questions: a) Can I have this many children?\
      The answer for 1-8: yes, for 9-18: unlikely but possible, for 19+: I don't think so \\ no. \
      b) Can I eat this many apples? \\ Valid answer: Yes \\ No \\ Few people probably can \\ I would not recommend that \\ I do not think so!\
@@ -32,6 +33,7 @@ class AIWrapper:
         self.client = None
         self.instructions = INSTRUCTIONS
         self.base_url = "https://litellm.uni-osnabrueck.de/v1"
+        self.hint_history = []
 
 
     def initiate_client(self, api_key):
@@ -41,18 +43,20 @@ class AIWrapper:
         )
 
         try:
+            # no-message way to check conection to the server
             client.models.list()
         except Exception as e:
             client.close()
-
-            print(f"DEBUG: exception caught correctly. Msg:{e}")
             raise
 
         if self.client is not None:
+            # closing the previous client before using the new one
             self.client.close()
 
         self.client = client
 
+
+    # Connecting to the server to check validity of the API key
     def connect(self, api_key, sidebar=False):
         try:
             with st.spinner("Connecting..."):
@@ -76,6 +80,8 @@ class AIWrapper:
         else:
             return None
 
+
+    # Requesting the API key in the pop-up window
     def request_api_key_dialog(self):
         @st.dialog("Gimme ur key🗝")
 
@@ -93,10 +99,11 @@ class AIWrapper:
 
         if self.client is None:
             api_key_dialog()
+
         return
 
 
-
+    # Sidebar with
     def request_api_key_sidebar(self):
         with st.sidebar:
             st.write("If you don't have the key, go get it at https://keyosk.uni-osnabrueck.de/")
@@ -121,16 +128,30 @@ class AIWrapper:
 
             if st.button(button_text):
 
-                print("\n\nWe entered the button\n\n")
+                # print("\n\nWe entered the button\n\n")
                 error = self.connect(api_key, sidebar=True)
 
                 if error:
-                    print("WE ARE HERE")
+                    # print("WE ARE HERE")
                     api_message.error(f"{error} Using the old key instead.")
                     time.sleep(3)
 
                 st.rerun()
 
+
+    def add_to_hint_history(self, question, answer):
+
+        print("\n\n\n" + answer)
+        if ("Unfortunately" in answer or "Sorry" in answer):
+            valid = False
+        else:
+            valid = True
+
+        hint = {"question": question, "answer": answer, "valid": valid}
+
+        self.hint_history.append(hint)
+
+        return hint
 
 
     def main(self, number):
@@ -163,6 +184,8 @@ class AIWrapper:
 
                 with st.chat_message("assistant"):
                     st.write(answer)
+
+                self.add_to_hint_history(question=prompt, answer=answer)
 
             except AuthenticationError:
                 st.error("Auth error: Please check your API key")

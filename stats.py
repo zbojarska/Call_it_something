@@ -35,6 +35,18 @@ st.altair_chart(chart, use_container_width=True)
 if "#008000" in st.session_state['colors']:
     st.success(f"You won in {len(st.session_state['guess_history'])} guesses!")
 
+with st.expander("Hint history", expanded=True):
+    for i, hint in enumerate(st.session_state.ai_wrapper.hint_history, start=1):
+        with st.container(border=True):
+            st.badge(
+                "Good question!" if hint["valid"] else "Bad question :(",
+                color="green" if hint["valid"] else "red"
+            )
+            st.markdown(
+                f"**Q:** {hint['question']}  \n\n"
+                f"**A:** {hint['answer']}"
+            )
+
 # add the clues history, number of clues
 # add the sztrzałka czasu, na której widać kiedy był guess a kiedy clue
 
