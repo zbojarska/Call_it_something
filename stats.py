@@ -36,7 +36,7 @@ if "#008000" in st.session_state['colors']:
     st.success(f"You won in {len(st.session_state['guess_history'])} guesses!")
 
 with st.expander("Hint history", expanded=True):
-    for i, hint in enumerate(st.session_state.ai_wrapper.hint_history, start=1):
+    for i, hint in enumerate(reversed(st.session_state.ai_wrapper.hint_history), start=1):
         with st.container(border=True):
             st.badge(
                 "Good question!" if hint["valid"] else "Bad question :(",
