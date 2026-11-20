@@ -76,6 +76,7 @@ with col2:
     wrapper = st.session_state.ai_wrapper
     wrapper.main(st.session_state["number"])
 
+
 # Title
 # rules
 # a random number from 1 to 100 that stays the same
