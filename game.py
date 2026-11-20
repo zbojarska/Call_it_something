@@ -21,7 +21,7 @@ on. Any questions about the number that are not putting it in a specific context
 
 st.info("Turn on your imagination and try to come up with creative questions that will help you guess the number! Good luck!")
 
-col1, col2 = st.columns([2, 1])
+col1, col2 = st.columns([1, 1])
 with col1:
     # create a new random number if we don't have one yet
     if "number" not in st.session_state:
@@ -49,6 +49,7 @@ if st.button("New Game"):
     st.session_state["number"] = random.randint(1,100)
     st.session_state["guess_history"] = []
     st.session_state["colors"] = []
+    st.session_state["ai_wrapper"].hint_history = []
     # also clear the clues history!!!
     # ...
 
@@ -76,6 +77,17 @@ with col2:
     wrapper = st.session_state.ai_wrapper
     wrapper.main(st.session_state["number"])
 
+    with st.expander("Hint history", expanded=False):
+        for i, hint in enumerate(reversed(st.session_state.ai_wrapper.hint_history), start=1):
+            with st.container(border=True):
+                st.badge(
+                    "Good question!" if hint["valid"] else "Bad question :(",
+                    color="green" if hint["valid"] else "red"
+                )
+                st.markdown(
+                    f"**Q:** {hint['question']}  \n\n"
+                    f"**A:** {hint['answer']}"
+                )
 
 # Title
 # rules
