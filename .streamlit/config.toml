@@ -1,0 +1,14 @@
+[theme]
+base = "dark"
+
+[theme.dark]
+primaryColor = "#78D9A0"
+backgroundColor = "#111F19"
+secondaryBackgroundColor = "#20382C"
+textColor = "#E0F2E5"
+
+[theme.light]
+primaryColor = "#3A9B68"
+backgroundColor = "#F0F8F1"
+secondaryBackgroundColor = "#DCEEE0"
+textColor = "#234735"
