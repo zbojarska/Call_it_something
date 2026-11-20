@@ -4,8 +4,6 @@ import pandas as pd
 
 st.header("Stats")
 
-st.write(f"Guess history: {st.session_state['guess_history']}")
-
 guess_data = {
     "guessing_attempt": list(range(1, len(st.session_state['guess_history']) + 1)),
     "guess": st.session_state['guess_history'],
@@ -22,10 +20,14 @@ guess_data = {
 
 guess_alt = pd.DataFrame(guess_data)
 
+guess_history_str = ", ".join(str(guess) for guess in st.session_state['guess_history'])
+
 chart = alt.Chart(guess_alt).mark_circle(size=100).encode(
-    x = alt.X("guessing_attempt:Q", title="Guessing Attempt"),
-    y = alt.Y("guess:Q", title="Your Guess"),
+    x = alt.X("guessing_attempt:Q", title="Guessing Attempt",  axis=alt.Axis(tickMinStep=1, format="d")),
+    y = alt.Y("guess:Q", title="Your Guess", axis=alt.Axis(tickMinStep=1, format="d"), scale=alt.Scale(domain=[1, 100])),
     color = alt.Color("point_color:N", scale=None)
+).properties(
+    title = f"Your Guess History: {guess_history_str}",
 )
 
 st.altair_chart(chart, use_container_width=True)
@@ -33,13 +35,8 @@ st.altair_chart(chart, use_container_width=True)
 if "#008000" in st.session_state['colors']:
     st.success(f"You won in {len(st.session_state['guess_history'])} guesses!")
 
-# add the clues history
-# ...
-
-
-# add clues history, number of clues.
-
-
+# add the clues history, number of clues
+# add the sztrzałka czasu, na której widać kiedy był guess a kiedy clue
 
 
 if st.button("Go to the Game"):
